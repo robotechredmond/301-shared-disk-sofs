@@ -103,7 +103,7 @@ configuration ConfigureCluster
             TestScript           = "(Get-Cluster -ErrorAction SilentlyContinue).Name -eq '${ClusterName}'"
             GetScript            = "@{Ensure = if ((Get-Cluster -ErrorAction SilentlyContinue).Name -eq '${ClusterName}') {'Present'} else {'Absent'}}"
             PsDscRunAsCredential = $DomainCreds
-            DependsOn            = @("[Computer]DomainJoin", "[WindowsFeature]FS-FileServer")
+            DependsOn            = @("[Computer]DomainJoin", "[WindowsFeature]FS")
         }
 
         foreach ($Node in $Nodes) {
