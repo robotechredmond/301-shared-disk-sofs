@@ -124,7 +124,7 @@ configuration ConfigureCluster
         }
 
         Script AddClusterDisks {
-            SetScript  = "Get-ClusterAvailableDisk | Add-ClusterDisk | Add-ClusterSharedVolume"
+            SetScript  = "Get-ClusterAvailableDisk | Add-ClusterDisk"
             TestScript = "(Get-ClusterAvailableDisk).Count -eq 0"
             GetScript  = "@{Ensure = if ((Get-ClusterAvailableDisk).Count -eq 0) {'Present'} else {'Absent'}}"
             DependsOn  = "[Script]FormatSharedDisks"
@@ -135,6 +135,13 @@ configuration ConfigureCluster
             TestScript = "((Get-ClusterQuorum).QuorumResource).Count -gt 0"
             GetScript  = "@{Ensure = if (((Get-ClusterQuorum).QuorumResource).Count -gt 0) {'Present'} else {'Absent'}}"
             DependsOn  = "[Script]AddClusterDisks"
+        }
+
+        Script AddToCSV {
+            SetScript  = "Get-ClusterGroup -Name 'Available Storage' | Get-ClusterResource | ? ResourceType -eq 'Physical Disk' | Add-ClusterSharedVolume"
+            TestScript = "(Get-ClusterSharedVolume).Count -gt 0"
+            GetScript  = "@{Ensure = if ((Get-ClusterSharedVolume).Count -gt 0) {'Present'} else {'Absent'}}"
+            DependsOn  = "[Script]ClusterWitness"
         }
 
         Script IncreaseClusterTimeouts {
@@ -149,7 +156,7 @@ configuration ConfigureCluster
             TestScript = "'${SOFSName}' -in (Get-ClusterGroup).Name"
             GetScript  = "@{Ensure = if ('${SOFSName}' -in (Get-ClusterGroup).Name) {'Present'} else {'Absent'}}"
             PsDscRunAsCredential = $DomainCreds
-            DependsOn  = "[Script]IncreaseClusterTimeouts"
+            DependsOn  = "[Script]AddToCSV"
         }
 
         Script CreateShare
